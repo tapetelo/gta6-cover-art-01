@@ -5,7 +5,13 @@
 
 import { gradeById, layoutById } from './state.js';
 import { drawHalftone, drawPalm, drawScanlines, drawSunDisc, makeGrainPattern, posterize } from './decor.js';
-import { drawLettering } from './lettering.js';
+import { drawLettering, drawLetteringOverArt } from './lettering.js';
+
+// A panel source may be a loaded <img> (naturalWidth) or a painted scene
+// canvas (width). Both report their pixel size through this helper.
+function sourceSize(img) {
+  return { w: img.naturalWidth ?? img.width, h: img.naturalHeight ?? img.height };
+}
 
 // Converts a layout panel (fractions) to pixel geometry for a w×h cover.
 export function panelRect(panel, w, h) {
@@ -30,10 +36,11 @@ function tracePanel(ctx, panel, w, h) {
 // Draws one photo into one panel honouring its zoom and pan. The photo is
 // cover-fitted, then scaled by `zoom` and shifted by the pan fractions.
 function drawPhotoInPanel(ctx, img, rect, crop, grade) {
-  const coverScale = Math.max(rect.w / img.naturalWidth, rect.h / img.naturalHeight);
+  const src = sourceSize(img);
+  const coverScale = Math.max(rect.w / src.w, rect.h / src.h);
   const scale = coverScale * crop.zoom;
-  const pw = img.naturalWidth * scale;
-  const ph = img.naturalHeight * scale;
+  const pw = src.w * scale;
+  const ph = src.h * scale;
   const spareX = pw - rect.w;
   const spareY = ph - rect.h;
   const dx = rect.x - spareX / 2 + crop.panX * (spareX / 2);
@@ -79,6 +86,30 @@ function drawEmptyPanel(ctx, rect, grade, index) {
   ctx.restore();
 }
 
+// Paints the Collage 9 centre cell: a sunset emblem — striped sun over a
+// sea line with two palms — so the middle of the grid reads as the cover's
+// badge even before the big title lands over the lower panels.
+function drawEmblemCell(ctx, rect, grade) {
+  const sky = ctx.createLinearGradient(0, rect.y, 0, rect.y + rect.h);
+  sky.addColorStop(0, grade.bg[0]);
+  sky.addColorStop(0.55, grade.bg[1]);
+  sky.addColorStop(1, grade.bg[2]);
+  ctx.fillStyle = sky;
+  ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+  const cx = rect.x + rect.w / 2;
+  const cy = rect.y + rect.h * 0.52;
+  const r = Math.min(rect.w, rect.h) * 0.36;
+  const disc = document.createElement('canvas');
+  disc.width = Math.ceil(rect.w);
+  disc.height = Math.ceil(rect.h);
+  drawSunDisc(disc.getContext('2d'), rect.w / 2, rect.h * 0.52, r, '#ffe95e', '#ff8a3c', '#ff2e88');
+  ctx.drawImage(disc, rect.x, rect.y);
+  ctx.fillStyle = 'rgba(10, 4, 26, 0.85)';
+  ctx.fillRect(rect.x, cy + r * 0.55, rect.w, rect.h * 0.5);
+  drawPalm(ctx, rect.x + rect.w * 0.1, rect.y + rect.h * 0.98, rect.h * 0.52, 0.5, '#0d0618');
+  drawPalm(ctx, rect.x + rect.w * 0.9, rect.y + rect.h * 0.98, rect.h * 0.58, -0.5, '#0d0618');
+}
+
 // Renders the full cover. `opts.highlight` (a panel index, or -1) draws the
 // editor's selection outline; exports pass -1 so nothing extra is baked in.
 export function renderCover(canvas, state, opts = {}) {
@@ -117,7 +148,9 @@ export function renderCover(canvas, state, opts = {}) {
     ctx.save();
     tracePanel(ctx, panel, w, h);
     ctx.clip();
-    if (photo) {
+    if (panel.emblem) {
+      drawEmblemCell(ctx, rect, grade);
+    } else if (photo) {
       drawPhotoInPanel(ctx, photo.img, rect, crop, grade);
     } else {
       drawEmptyPanel(ctx, rect, grade, i);
@@ -132,15 +165,17 @@ export function renderCover(canvas, state, opts = {}) {
     ctx.restore();
   });
 
-  // Halftone / pop treatment over the panel zone.
-  if (state.halftone) {
+  // Halftone / pop treatment over the panel zone. The Poster Ink grade
+  // asks for it by itself; the toggle adds it to any other grade.
+  if (state.halftone || grade.posterize) {
+    const zoneH = layout.overArt ? h : Math.round(h * 0.72);
     const zone = document.createElement('canvas');
     zone.width = w;
-    zone.height = Math.round(h * 0.72);
-    zone.getContext('2d').drawImage(canvas, 0, 0, w, zone.height, 0, 0, w, zone.height);
-    posterize(zone, 5);
+    zone.height = zoneH;
+    zone.getContext('2d').drawImage(canvas, 0, 0, w, zoneH, 0, 0, w, zoneH);
+    posterize(zone, grade.posterize ? 4 : 5);
     ctx.drawImage(zone, 0, 0);
-    drawHalftone(ctx, zone, w, zone.height, Math.max(6, shortSide * 0.012));
+    drawHalftone(ctx, zone, w, zoneH, Math.max(6, shortSide * 0.012));
   }
 
   // Palm silhouettes rooted at the outer corners of the panel zone, kept
@@ -172,8 +207,21 @@ export function renderCover(canvas, state, opts = {}) {
 
   if (state.scanlines) drawScanlines(ctx, w, h, Math.max(3, shortSide * 0.006));
 
-  // Lettering last, so it sits on top of every effect.
-  drawLettering(ctx, w, h, state.title, state.subtitle, state.tilt, state.arc);
+  // Lettering last, so it sits on top of every effect. Poster layouts
+  // (Collage 9 / Slash / Key Art) carry the words over the art itself.
+  if (layout.overArt) {
+    drawLetteringOverArt(ctx, w, h, {
+      title: state.title,
+      subtitle: state.subtitle,
+      quote: state.quote,
+      tiltDeg: state.tilt,
+      arc: state.arc,
+      seal: state.seal,
+      stars: state.stars,
+    });
+  } else {
+    drawLettering(ctx, w, h, state.title, state.subtitle, state.tilt, state.arc);
+  }
 
   // Editor selection outline (never exported).
   const hi = opts.highlight ?? -1;
