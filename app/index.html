@@ -24,10 +24,13 @@
   <aside class="panel" aria-label="Cover controls">
     <section class="group">
       <h2>1 · Photos</h2>
-      <p class="hint">Add 1–5 photos. One photo can fill every panel with different crops.</p>
+      <p class="hint">Starts with built-in poster scenes (drawn in code). Add 1–5 of your photos — panels mix scenes and photos freely.</p>
       <div class="row">
         <label class="file-btn" for="photo-input">Add photos…</label>
         <input id="photo-input" type="file" accept="image/*" multiple hidden>
+      </div>
+      <div class="row">
+        <button id="scenes-btn" type="button">Load poster scenes</button>
       </div>
       <div class="row">
         <button id="sample-pier" type="button">Try pier sample</button>
@@ -65,8 +68,11 @@
 
     <section class="group">
       <h2>4 · Lettering</h2>
-      <label class="field">Title <input id="title" type="text" maxlength="24" value="SOLSTICE"></label>
+      <label class="field">Title <input id="title" type="text" maxlength="24" value="LEONIDA HEAT"></label>
       <label class="field">Subtitle <input id="subtitle" type="text" maxlength="32" value="COASTLINE RUN"></label>
+      <label class="field">Quote <input id="quote" type="text" maxlength="48" value="Five stars, zero brakes"></label>
+      <label class="slider">Stars <input id="stars" type="range" min="0" max="5" step="1" value="5"></label>
+      <label class="check"><input id="seal" type="checkbox" checked> Cover seal</label>
       <label class="slider">Tilt <input id="tilt" type="range" min="-12" max="12" step="0.5" value="-3"></label>
       <label class="check"><input id="arc" type="checkbox"> Arched title</label>
     </section>
