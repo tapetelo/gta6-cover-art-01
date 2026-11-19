@@ -63,6 +63,44 @@ export const LAYOUTS = [
       { x: 0.505, y: 0.38, w: 0.465, h: 0.32 },
     ],
   },
+  {
+    id: 'collage9',
+    name: 'Collage 9',
+    blurb: '3×3 poster grid, title emblem in the middle',
+    overArt: true,
+    panels: [
+      { x: 0.02, y: 0.02, w: 0.315, h: 0.31 },
+      { x: 0.345, y: 0.02, w: 0.31, h: 0.31 },
+      { x: 0.665, y: 0.02, w: 0.315, h: 0.31 },
+      { x: 0.02, y: 0.345, w: 0.315, h: 0.31 },
+      { x: 0.345, y: 0.345, w: 0.31, h: 0.31, emblem: true },
+      { x: 0.665, y: 0.345, w: 0.315, h: 0.31 },
+      { x: 0.02, y: 0.67, w: 0.315, h: 0.31 },
+      { x: 0.345, y: 0.67, w: 0.31, h: 0.31 },
+      { x: 0.665, y: 0.67, w: 0.315, h: 0.31 },
+    ],
+  },
+  {
+    id: 'slash',
+    name: 'Slash',
+    blurb: 'Slanted key-art bands, title over the art',
+    overArt: true,
+    panels: [
+      { x: 0.0, y: 0.0, w: 0.34, h: 1.0, poly: [[0.0, 0.0], [0.26, 0.0], [0.12, 1.0], [0.0, 1.0]] },
+      { x: 0.2, y: 0.0, w: 0.34, h: 1.0, poly: [[0.285, 0.0], [0.545, 0.0], [0.405, 1.0], [0.145, 1.0]] },
+      { x: 0.46, y: 0.0, w: 0.34, h: 1.0, poly: [[0.57, 0.0], [0.83, 0.0], [0.69, 1.0], [0.43, 1.0]] },
+      { x: 0.72, y: 0.0, w: 0.28, h: 1.0, poly: [[0.855, 0.0], [1.0, 0.0], [1.0, 1.0], [0.715, 1.0]] },
+    ],
+  },
+  {
+    id: 'keyart',
+    name: 'Key Art',
+    blurb: 'One hero scene full-bleed, title over the art',
+    overArt: true,
+    panels: [
+      { x: 0.0, y: 0.0, w: 1.0, h: 1.0 },
+    ],
+  },
 ];
 
 // Colour grades. `filter` is a CSS filter string applied while drawing each
@@ -105,6 +143,16 @@ export const GRADES = [
     blend: 'overlay',
     bg: ['#0a0620', '#a78bfa', '#3b82f6'],
   },
+  {
+    id: 'poster',
+    name: 'Poster Ink',
+    blurb: 'Print poster: punchy, banded, dotted',
+    filter: 'saturate(1.85) contrast(1.28) brightness(1.04) hue-rotate(-8deg)',
+    wash: [[0, 'rgba(255, 46, 136, 0.30)'], [0.5, 'rgba(255, 160, 40, 0.16)'], [1, 'rgba(20, 120, 200, 0.26)']],
+    blend: 'overlay',
+    bg: ['#20083a', '#ff2e88', '#ffb347'],
+    posterize: true,
+  },
 ];
 
 // Export sizes offered in the UI. The preview uses the chosen size's aspect.
@@ -115,7 +163,7 @@ export const EXPORT_SIZES = [
   { id: 'poster', name: 'Poster 1200×1600', w: 1200, h: 1600 },
 ];
 
-export const MAX_PHOTOS = 5;
+export const MAX_PHOTOS = 9;
 
 // One panel's crop: which photo fills it, how far zoomed in (1 = cover fit),
 // and the pan offset as fractions of the spare room (-1..1, 0 = centred).
@@ -127,12 +175,15 @@ export function freshPanel(photoIndex) {
 // `panels` is rebuilt whenever the layout changes.
 export const state = {
   photos: [],
-  layoutId: 'hero5',
-  gradeId: 'vice',
+  layoutId: 'collage9',
+  gradeId: 'poster',
   panels: [],
   selected: 0,
-  title: 'SOLSTICE',
+  title: 'LEONIDA HEAT',
   subtitle: 'COASTLINE RUN',
+  quote: 'Five stars, zero brakes',
+  seal: true,
+  stars: 5,
   tilt: -3,
   arc: false,
   halftone: false,
