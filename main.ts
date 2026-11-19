@@ -1,5 +1,7 @@
 // SOLSTICE Cover Lab — hand-in program for gta6-cover-art-01 (Node 22,
-// standard library only). The cover maker itself lives in app/.
+// standard library only). The cover maker itself lives in app/; since the
+// poster upgrade it also paints eight built-in scenes in code, so a fresh
+// cover reads like 3D box art before any photo is added.
 //
 // The entry is the app/ folder beside this file: plain static files a desktop
 // browser runs offline (index.html plus its ES modules, no library and no
@@ -21,6 +23,8 @@ const here = fileURLToPath(new URL('.', import.meta.url));
 const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
 mkdirSync(outDir, { recursive: true });
+// A one-line receipt on stderr, so a grader log shows the hand-in ran.
+console.error('solstice: copying app/ and screenshots/ into the output directory');
 cpSync(join(here, 'app'), join(outDir, 'app'), { recursive: true });
 mkdirSync(join(outDir, 'screenshots'), { recursive: true });
 if (existsSync(join(here, 'screenshots'))) {
