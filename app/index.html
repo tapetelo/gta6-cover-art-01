@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOLSTICE Cover Lab — multi-panel cover maker</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <div>
+      <h1>SOLSTICE Cover Lab</h1>
+      <p>Turn your photos into bold multi-panel cover art. Works offline — photos never leave this page.</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button id="quick-export" type="button" class="primary">Export PNG</button>
+  </div>
+</header>
+
+<main class="workspace">
+  <aside class="panel" aria-label="Cover controls">
+    <section class="group">
+      <h2>1 · Photos</h2>
+      <p class="hint">Add 1–5 photos. One photo can fill every panel with different crops.</p>
+      <div class="row">
+        <label class="file-btn" for="photo-input">Add photos…</label>
+        <input id="photo-input" type="file" accept="image/*" multiple hidden>
+      </div>
+      <div class="row">
+        <button id="sample-pier" type="button">Try pier sample</button>
+        <button id="sample-boulevard" type="button">Try boulevard sample</button>
+      </div>
+      <ul id="photo-list" class="photo-list" aria-label="Loaded photos"></ul>
+      <div class="row">
+        <button id="fill-all" type="button">Fill all panels</button>
+        <button id="shuffle" type="button">Shuffle crops</button>
+      </div>
+      <p class="hint">Click a panel in the preview, drag to pan, scroll or use the slider to zoom.</p>
+      <label class="slider">Panel zoom
+        <input id="zoom" type="range" min="1" max="3" step="0.01" value="1">
+      </label>
+      <label class="slider">Panel photo
+        <select id="panel-photo"></select>
+      </label>
+    </section>
+
+    <section class="group">
+      <h2>2 · Layout</h2>
+      <div id="layout-picker" class="layout-picker" role="radiogroup" aria-label="Panel layout"></div>
+    </section>
+
+    <section class="group">
+      <h2>3 · Colour grade</h2>
+      <div id="grade-picker" class="grade-picker" role="radiogroup" aria-label="Colour grade"></div>
+      <label class="check"><input id="halftone" type="checkbox"> Halftone / pop print</label>
+      <label class="slider">Grain <input id="grain" type="range" min="0" max="1" step="0.01" value="0.35"></label>
+      <label class="slider">Vignette <input id="vignette" type="range" min="0" max="1" step="0.01" value="0.55"></label>
+      <label class="check"><input id="palms" type="checkbox" checked> Palm silhouettes</label>
+      <label class="check"><input id="sun" type="checkbox" checked> Sun disc</label>
+      <label class="check"><input id="scanlines" type="checkbox"> Scanlines</label>
+    </section>
+
+    <section class="group">
+      <h2>4 · Lettering</h2>
+      <label class="field">Title <input id="title" type="text" maxlength="24" value="SOLSTICE"></label>
+      <label class="field">Subtitle <input id="subtitle" type="text" maxlength="32" value="COASTLINE RUN"></label>
+      <label class="slider">Tilt <input id="tilt" type="range" min="-12" max="12" step="0.5" value="-3"></label>
+      <label class="check"><input id="arc" type="checkbox"> Arched title</label>
+    </section>
+
+    <section class="group">
+      <h2>5 · Export</h2>
+      <label class="field">Size
+        <select id="export-size"></select>
+      </label>
+      <button id="export" type="button" class="primary big">Download PNG</button>
+      <p id="status" class="status" role="status"></p>
+    </section>
+  </aside>
+
+  <section class="stage" aria-label="Cover preview">
+    <div id="drop-zone" class="drop-zone">
+      <canvas id="cover" width="1080" height="1350" aria-label="Cover preview. Click a panel to select it, drag to pan, scroll to zoom."></canvas>
+      <p class="drop-hint">Drop photos here</p>
+    </div>
+    <p class="stage-note">Preview is live. Export renders at the exact size you picked.</p>
+  </section>
+</main>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
