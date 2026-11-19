@@ -5,6 +5,7 @@
 
 import { EXPORT_SIZES, GRADES, LAYOUTS, MAX_PHOTOS, freshPanel, sizeById, state, syncPanels } from './state.js';
 import { panelAt, panelRect, renderCover } from './render.js';
+import { paintAllScenes } from './scenes.js';
 import { runShot } from './shots.js';
 
 const canvas = document.getElementById('cover');
@@ -67,7 +68,7 @@ function renderPhotoList() {
   state.photos.forEach((photo, i) => {
     const li = document.createElement('li');
     const thumb = document.createElement('img');
-    thumb.src = photo.img.src;
+    thumb.src = photo.img.src ?? photo.img.toDataURL('image/png');
     thumb.alt = '';
     const name = document.createElement('span');
     name.className = 'name';
@@ -125,6 +126,25 @@ async function addFiles(files) {
 async function loadSample(name) {
   const img = await loadImage(`samples/${name}.jpg`);
   addPhoto(img, `${name}.jpg (sample)`);
+}
+
+// Loads the eight built-in poster scenes (painted in code, no files) as the
+// photo pool, replacing whatever was there, and arranges them for the
+// Collage 9 grid: skyline, supercar, heli across the top; boat and flamingo
+// flanking the emblem; beach, gator and big-sun along the bottom.
+function loadScenes() {
+  state.photos = paintAllScenes();
+  syncPanels();
+  const order = [2, 0, 6, 1, 3, 5, 3, 4, 7];
+  state.panels.forEach((panel, i) => {
+    panel.photo = Math.min(order[i] ?? i, state.photos.length - 1);
+    panel.zoom = 1;
+    panel.panX = 0;
+    panel.panY = 0;
+  });
+  renderPhotoList();
+  redraw();
+  say('Poster scenes loaded — add your own photos any time, panels mix both.');
 }
 
 // --- Layout and grade pickers -------------------------------------------------
@@ -244,10 +264,12 @@ canvas.addEventListener('pointermove', (event) => {
   void rect;
   const layoutPanel = (awaitLayoutPanel());
   const r = panelRect(layoutPanel, canvas.width, canvas.height);
-  const coverScale = Math.max(r.w / photo.img.naturalWidth, r.h / photo.img.naturalHeight);
+  const srcW = photo.img.naturalWidth ?? photo.img.width;
+  const srcH = photo.img.naturalHeight ?? photo.img.height;
+  const coverScale = Math.max(r.w / srcW, r.h / srcH);
   const scale = coverScale * panel.zoom;
-  const spareX = Math.max(1, photo.img.naturalWidth * scale - r.w);
-  const spareY = Math.max(1, photo.img.naturalHeight * scale - r.h);
+  const spareX = Math.max(1, srcW * scale - r.w);
+  const spareY = Math.max(1, srcH * scale - r.h);
   panel.panX = clamp(drag.panel.panX + ((point.x - drag.x) / (spareX / 2)), -1, 1);
   panel.panY = clamp(drag.panel.panY + ((point.y - drag.y) / (spareY / 2)), -1, 1);
   redraw();
@@ -284,6 +306,7 @@ document.getElementById('photo-input').addEventListener('change', (event) => {
 });
 document.getElementById('sample-pier').addEventListener('click', () => loadSample('pier'));
 document.getElementById('sample-boulevard').addEventListener('click', () => loadSample('boulevard'));
+document.getElementById('scenes-btn').addEventListener('click', loadScenes);
 
 const dropZone = document.getElementById('drop-zone');
 ['dragenter', 'dragover'].forEach((name) => dropZone.addEventListener(name, (event) => {
@@ -332,6 +355,9 @@ document.getElementById('scanlines').addEventListener('change', (e) => { state.s
 
 document.getElementById('title').addEventListener('input', (e) => { state.title = e.target.value; redraw(); });
 document.getElementById('subtitle').addEventListener('input', (e) => { state.subtitle = e.target.value; redraw(); });
+document.getElementById('quote').addEventListener('input', (e) => { state.quote = e.target.value; redraw(); });
+document.getElementById('seal').addEventListener('change', (e) => { state.seal = e.target.checked; redraw(); });
+document.getElementById('stars').addEventListener('input', (e) => { state.stars = Number(e.target.value); redraw(); });
 document.getElementById('tilt').addEventListener('input', (e) => { state.tilt = Number(e.target.value); redraw(); });
 document.getElementById('arc').addEventListener('change', (e) => { state.arc = e.target.checked; redraw(); });
 document.getElementById('export-size').addEventListener('change', (e) => { state.exportSize = e.target.value; redraw(); });
@@ -364,11 +390,11 @@ syncPanels();
 const query = new URLSearchParams(location.search);
 const shot = query.get('shot');
 if (shot) {
-  runShot(shot, query, loadSample, redraw).catch((err) => {
+  runShot(shot, query, loadScenes, loadSample, redraw).catch((err) => {
     say(String(err));
     window.__shotReady = true;
   });
 } else {
-  redraw();
-  say('Add your photos, or try a sample to see the cover instantly.');
+  loadScenes();
+  say('Poster scenes are in. Add your photos, or press a sample to mix real shots in.');
 }
